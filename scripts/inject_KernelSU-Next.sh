@@ -20,8 +20,14 @@ if [ "${USE_DYNAMIC_TRANSPLANT}" == "true" ]; then
     
     cd "${MANAGER_DIR}"
 
+    # Pin the official release before SUSFS integration; never silently build an old fork.
+    KSU_NEXT_PIN="${KSU_NEXT_PIN:-v3.4.1}"
+    git fetch --tags origin
+    git checkout --detach "$KSU_NEXT_PIN"
+    echo ">>> Pinned official KernelSU-Next release: $(git describe --tags --exact-match HEAD)"
+
     # CAPTURE THIS IMMEDIATELY BEFORE ANY MERGING!
-    UPSTREAM_HASH=$(git log -n 1 --format="%H" -i --grep="ci skip" --grep="skip ci" --grep="clippy" --invert-grep -- manager/ kernel/ userspace/ .github/workflows/ ":!*Cargo.lock" ":!*Cargo.toml")
+    UPSTREAM_HASH=$(git rev-parse HEAD)
     CALCULATED_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
     echo "  -> Target Tag: $CALCULATED_TAG"
 
@@ -47,6 +53,7 @@ if [ "${USE_DYNAMIC_TRANSPLANT}" == "true" ]; then
     # Lock in variables for the Kbuild Gatekeeper
     UPSTREAM_BRANCH="dev"
     CALCULATED_COUNT=$(git rev-list --count "${UPSTREAM_HASH}")
+    echo ">>> Pinned KSU version: ${CALCULATED_TAG}, git count ${CALCULATED_COUNT}"
     
 else
     echo ">>> Safe fallback channel detected. Bypassing dynamic squash merge..."
