@@ -7,6 +7,24 @@ VARIANT="${1}"
 GH_TOKEN="${2}"
 UPSTREAM_HASH="${3:-}"
 
+# For pinned KernelSU-Next builds, obtain the manager from the same official release.
+# Do not silently fall back to a dev-branch artifact from a different revision.
+if [[ "${VARIANT}" == "KernelSU-Next" && -n "${KSU_NEXT_PIN:-}" ]]; then
+    echo ">>> Fetching pinned KernelSU-Next manager: ${KSU_NEXT_PIN}"
+    RELEASE_JSON=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+      "https://api.github.com/repos/KernelSU-Next/KernelSU-Next/releases/tags/${KSU_NEXT_PIN}")
+    DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r '[.assets[]? | select(.name | test("(?i)\\.apk$")) | select(.name | test("(?i)(manager|kernelsu)")) | select(.name | test("(?i)(debug|universal|x86_64|armeabi)") | not) | .browser_download_url] | first // empty')
+    if [[ -z "$DOWNLOAD_URL" ]]; then
+        echo "[-] ERROR: No suitable release manager APK for ${KSU_NEXT_PIN}. Refusing mismatched manager." >&2
+        exit 1
+    fi
+    mkdir -p manager_apk
+    curl -fL --retry 3 -o "manager_apk/KernelSU-Next-${KSU_NEXT_PIN}.apk" "$DOWNLOAD_URL"
+    test -s "manager_apk/KernelSU-Next-${KSU_NEXT_PIN}.apk"
+    echo ">>> Downloaded official manager for ${KSU_NEXT_PIN}"
+    exit 0
+fi
+
 # ==========================================
 # ROOT MANAGER FETCH LOGIC
 # ==========================================
