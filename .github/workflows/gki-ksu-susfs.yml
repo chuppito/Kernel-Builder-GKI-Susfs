@@ -191,8 +191,9 @@ jobs:
         if: inputs.root_manager != 'Stock' && (inputs.enable_ksu_susfs == true || inputs.enable_ksu == true)
         run: |
           echo "=== Configuring Build Channel: ${{ inputs.build_channel }} ==="
+          echo "KSU_NEXT_PIN=v3.4.1" >> "$GITHUB_ENV"
 
-          if [ "${{ inputs.build_channel }}" == "dynamic" ]; then
+          if [[ "${{ inputs.build_channel }}" == "dynamic" || "${{ inputs.root_manager }}" == "KernelSU-Next" ]]; then
 
           # Route KernelSU, KernelSU-Next, ReSukiSU, and SukiSU-Ultra to the dynamic engine
           if [[ "${{ inputs.root_manager }}" == "KernelSU" || "${{ inputs.root_manager }}" == "KernelSU-Next" || "${{ inputs.root_manager }}" == "ReSukiSU" || "${{ inputs.root_manager }}" == "SukiSU-Ultra" ]]; then
@@ -262,6 +263,7 @@ jobs:
           KSU_VARIANT_REF: ${{ env.KSU_VARIANT_REF }}
           USE_DYNAMIC_TRANSPLANT: ${{ env.USE_DYNAMIC_TRANSPLANT }}
           BUILD_CHANNEL: ${{ inputs.build_channel }}
+          KSU_NEXT_PIN: ${{ env.KSU_NEXT_PIN }}
           INTEGRATE_SUSFS: ${{ inputs.enable_ksu_susfs }}
         run: |
           bash ./scripts/inject_ksu_variant.sh "${{ inputs.root_manager }}"
@@ -518,6 +520,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VARIANT: ${{ inputs.root_manager }}
           UPSTREAM_HASH: ${{ env.UPSTREAM_HASH }}
+          KSU_NEXT_PIN: ${{ env.KSU_NEXT_PIN }}
         run: |
           chmod +x scripts/fetch_manager.sh
           ./scripts/fetch_manager.sh "$VARIANT" "$GH_TOKEN" "$UPSTREAM_HASH"
