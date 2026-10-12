@@ -119,4 +119,16 @@ if [ -f "$KBUILD_FILE" ]; then
     fi
 fi
 
+# Linker compatibility for SUSFS v2.3.0 with KernelSU-Next v3.4.1.
+# Apply only if the upstream SELinux hide implementation lacks fake_state.
+SELINUX_HIDE_FILE="${MANAGER_DIR}/kernel/feature/selinux_hide.c"
+if [[ "${INTEGRATE_SUSFS:-false}" == "true" && -f "$SELINUX_HIDE_FILE" ]]; then
+    if ! grep -Eq '^[[:space:]]*(static[[:space:]]+)?struct[[:space:]]+selinux_state[[:space:]]+fake_state[[:space:]]*(=|;)' "$SELINUX_HIDE_FILE"; then
+        echo ">>> [HOTFIX] Providing fake_state for SUSFS SELinux linkage..."
+        printf '\nstruct selinux_state fake_state = {0};\n' >> "$SELINUX_HIDE_FILE"
+    else
+        echo ">>> [HOTFIX] fake_state already defined; leaving upstream untouched."
+    fi
+fi
+
 echo ">>> KernelSU-Next integration complete."
