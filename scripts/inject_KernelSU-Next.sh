@@ -21,7 +21,7 @@ if [ "${USE_DYNAMIC_TRANSPLANT}" == "true" ]; then
     cd "${MANAGER_DIR}"
 
     # Pin the official release before SUSFS integration; never silently build an old fork.
-    KSU_NEXT_PIN="${KSU_NEXT_PIN:-v3.4.1}"
+    KSU_NEXT_PIN="${KSU_NEXT_PIN:-v3.4.2}"
     git fetch --tags origin
     git checkout --detach "$KSU_NEXT_PIN"
     echo ">>> Pinned official KernelSU-Next release: $(git describe --tags --exact-match HEAD)"
@@ -119,7 +119,7 @@ if [ -f "$KBUILD_FILE" ]; then
     fi
 fi
 
-# Linker compatibility for SUSFS v2.3.0 with KernelSU-Next v3.4.1.
+# Linker compatibility fallback for SUSFS v2.3.0 with KernelSU-Next.
 # Apply only if the upstream SELinux hide implementation lacks fake_state.
 SELINUX_HIDE_FILE="${MANAGER_DIR}/kernel/feature/selinux_hide.c"
 if [[ "${INTEGRATE_SUSFS:-false}" == "true" && -f "$SELINUX_HIDE_FILE" ]]; then
